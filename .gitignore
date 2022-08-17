@@ -89,6 +89,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.DS_Store
+*.db
 
 # Spyder project settings
 .spyderproject
