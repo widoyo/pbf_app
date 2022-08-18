@@ -6,7 +6,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 
 from config import Config
 
-from app.forms import LoginForm
+from app.forms import LoginForm, PesananOutForm
 from app.models import db, User, Pelanggan, Obat
 
 login_manager = LoginManager()    
@@ -21,7 +21,7 @@ def create_app(config_class=Config):
 
     from app import user
     from app import api
-    from app import pelanggan
+    from app import pelanggan, pesanan, penjualan
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -39,6 +39,8 @@ def create_app(config_class=Config):
     app.register_blueprint(user.bp, url_prefix='/user')
     app.register_blueprint(pelanggan.bp, url_prefix='/pelanggan')
     app.register_blueprint(api.bp, url_prefix='/api')
+    app.register_blueprint(pesanan.bp, url_prefix='/pesanan')
+    app.register_blueprint(penjualan.bp, url_prefix='/penjualan')
     
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -71,9 +73,11 @@ def create_app(config_class=Config):
     def homepage():
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
-        if current_user.role == 1:
+        if current_user.role == 1: # Sales
             pelanggans = Pelanggan.select()
             obats = Obat.select()
+            form_pesanan_out = PesananOutForm()
+            form_pesanan_out.pelanggan.choices = [(p.id, p.nama) for p in Pelanggan.select().order_by(Pelanggan.nama)]
             return render_template('index_sales.html', pelanggans=pelanggans, obats=obats)
         return render_template('index.html')
     

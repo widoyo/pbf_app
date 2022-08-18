@@ -1,3 +1,5 @@
+app/static/js/locale/*
+app/static/js/plugin/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -106,15 +106,16 @@ class Pelanggan(PaginatedAPIMixin, db.Model):
         }
         return data
 
-class PesananIn(db.Model):
+class Jual(db.Model):
     pelanggan = pw.ForeignKeyField(Pelanggan)
     tanggal = pw.DateField()
-    sales = pw.CharField()
+    sales = pw.CharField(null=True) # username
     jatuh_tempo = pw.DateField()
     diskon = pw.IntegerField(default=0)
+    status = pw.IntegerField(default=0) # 0: pesanan, 1: tagihan, 8: Batal, 9: lunas/Close
     
-class ItemPesananIn(db.Model):
-    pesananin = pw.ForeignKeyField(PesananIn)
+class ItemJual(db.Model):
+    pesananin = pw.ForeignKeyField(Jual)
     obat = pw.CharField()
     banyak = pw.IntegerField()
     harga = pw.IntegerField()
