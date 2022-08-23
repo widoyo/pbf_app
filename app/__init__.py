@@ -22,6 +22,7 @@ def create_app(config_class=Config):
     from app import user
     from app import api
     from app import pelanggan, pesanan, penjualan
+    from app import obat
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -41,6 +42,7 @@ def create_app(config_class=Config):
     app.register_blueprint(api.bp, url_prefix='/api')
     app.register_blueprint(pesanan.bp, url_prefix='/pesanan')
     app.register_blueprint(penjualan.bp, url_prefix='/penjualan')
+    app.register_blueprint(obat.bp, url_prefix='/obat')
     
     @app.route('/login', methods=['GET', 'POST'])
     def login():

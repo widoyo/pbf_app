@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a href="/user">User</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Tambah</li>
+        </ol>
+      </nav>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="alert alert-primary" role="alert">
+        <ul>
+          {% for m in messages %}
+            <li>{{ m }}</li>
+          {% endfor %}  
+        </ul>
+      </div>
+      {% endif %}
+      {% endwith %}
+      {% for e in errors %}
+      <li>{{ e }}</li>
+      {% endfor %}
+    <h1>Tambah User</h1>
+      </div>
+      </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <form action="{{ url_for('user.add') }}" method="POST">
+        {{ form.hidden_tag() }}
+      <div class="mb-3">
+        <label for="username" class="form-label">{{ form.username.label }}</label>
+        {{ form.username(class='form-control') }}
+      </div>
+      <div class="mb-3">
+        <label for="" class="form-label">{{ form.password.label }}</label>
+        {{ form.password(class='form-control') }}
+      </div>
+      <div class="mb-3">
+        <label for="location" class="form-label">Tugas di </label>
+        {{ form.role(class='form-select') }}
+      </div>
+      <div class="mb-3">{{ form.submit(class='btn btn-primary') }} <a href="javascript: histody.back()">batal</a></div>
+      </form>
+    </div>
+  </div>
+      </div>
+{% endblock %}

@@ -27,22 +27,22 @@ Or, if you don't want/need a background service you can just run:
 class PaginatedAPIMixin(object):
     @staticmethod
     def to_collection_dict(query, page, per_page, endpoint, **kwargs):
-        resources = PaginatedQuery(query, per_page)
+        resources = query.paginate(page, per_page)
         data = {
             'items': [item.to_dict() for item in resources],
             '_meta': {
                 'page': page,
                 'per_page': per_page,
-                'total_pages': resources.get_page_count(),
-                'total_items': resources.get_object_list().count()
+                'total_pages': query.count(),
+                'total_items': query.count()
             },
             '_links': {
                 'self': url_for(endpoint, page=page, per_page=per_page,
                                 **kwargs),
                 'next': url_for(endpoint, page=page + 1, per_page=per_page,
-                                **kwargs) if resources.has_next else None,
+                                **kwargs),
                 'prev': url_for(endpoint, page=page - 1, per_page=per_page,
-                                **kwargs) if resources.has_prev else None
+                                **kwargs)
             }
         }
         return data
@@ -54,7 +54,7 @@ class Note(db.Model):
     username = pw.CharField(max_length=35)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
-class Obat(db.Model):
+class Obat(PaginatedAPIMixin, db.Model):
     nama = pw.CharField(max_length=60)
     satuan = pw.CharField(null=True)
 

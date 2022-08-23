@@ -7,5 +7,5 @@ bp = Blueprint('penjualan', __name__)
 @bp.route('/')
 @login_required
 def index():
-    juals = Jual.select().where(Jual.sales.Jual.status == 9)
-    return render_template('penjualan/index.html', users=users)
+    juals = Jual.select().where(Jual.status == 9)
+    return render_template('penjualan/index.html', penjualan=juals)
