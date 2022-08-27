@@ -28,21 +28,24 @@ class PaginatedAPIMixin(object):
     @staticmethod
     def to_collection_dict(query, page, per_page, endpoint, **kwargs):
         resources = query.paginate(page, per_page)
+        total_page = int(query.count() / per_page) + ((query.count() % per_page) and 1 or 0)
+        has_next = page < total_page and True or False
+        has_prev = page > 1 and True or False
         data = {
             'items': [item.to_dict() for item in resources],
             '_meta': {
                 'page': page,
                 'per_page': per_page,
-                'total_pages': query.count(),
+                'total_pages': total_page,
                 'total_items': query.count()
             },
             '_links': {
                 'self': url_for(endpoint, page=page, per_page=per_page,
                                 **kwargs),
                 'next': url_for(endpoint, page=page + 1, per_page=per_page,
-                                **kwargs),
+                                **kwargs) if has_next else None,
                 'prev': url_for(endpoint, page=page - 1, per_page=per_page,
-                                **kwargs)
+                                **kwargs) if has_prev else None
             }
         }
         return data
@@ -89,6 +92,11 @@ class Pelanggan(PaginatedAPIMixin, db.Model):
     pkp = pw.CharField(max_length=50, null=True)
     nama_pajak = pw.CharField(max_length=50, null=True)
     alamat_pajak = pw.CharField(max_length=100, null=True)
+    # kolom extra
+    rating = pw.IntegerField(default=0) # maks 5
+    piutang = pw.FloatField(default=0)
+    num_order = pw.IntegerField(default=0)
+    
     
     def to_dict(self):
         data = {
@@ -107,12 +115,13 @@ class Pelanggan(PaginatedAPIMixin, db.Model):
         return data
 
 class Jual(db.Model):
+    '''Data penjualan, kolom status bermakna Baru dipesan, Konfirmed, delivered barangnya, lunas, batal'''
     pelanggan = pw.ForeignKeyField(Pelanggan)
     tanggal = pw.DateField()
     sales = pw.CharField(null=True) # username
     jatuh_tempo = pw.DateField()
     diskon = pw.IntegerField(default=0)
-    status = pw.IntegerField(default=0) # 0: pesanan, 1: tagihan, 8: Batal, 9: lunas/Close
+    status = pw.IntegerField(default=0) # current_status: 0: pesanan, 1: tagihan, 8: Batal, 9: lunas/Close
     
 class ItemJual(db.Model):
     pesananin = pw.ForeignKeyField(Jual)
@@ -121,6 +130,38 @@ class ItemJual(db.Model):
     harga = pw.IntegerField()
     diskon = pw.IntegerField(default=0)
     batch_no = pw.CharField(null=True)
+    
+MutasiStatusChoices = (
+    (0, 'pesanan'), # setelah Sales entry pesanan
+    (1, 'setuju'), # admin telah setuju
+    (2, 'siap'), # gudang: barang telah siap
+    (3, 'diserahkan'), # antar: barang telah sampai
+    (4, 'tagih'), # admin: faktur terbit
+    (5, 'lunas'), # admin
+    (8, 'batal') # admin
+)
+
+class MutasiStatusJual(db.Model):
+    '''Perubahan status table Jual'''
+    jual = pw.ForeignKeyField(Jual)
+    username = pw.CharField(max_length=25)
+    status = pw.IntegerField(default=0) # MutasiStatusChoices
+    waktu = pw.DateTimeField()
+    
+class Kategori(db.Model):
+    nama = pw.CharField()
+    parent = pw.ForeignKeyField('self', null=True)
+    
+class CashFlow(db.Model):
+    '''aliran kas, masuk (nilai+), keluar (nilai-)'''
+    partner_type = pw.CharField(null=True) # 'pelanggan', 'supplier'
+    partner_id = pw.IntegerField(null=True) # id
+    nilai = pw.FloatField()
+    keterangan = pw.CharField()
+    username = pw.CharField(max_length=25, null=True)
+    kategori = pw.ForeignKeyField(Kategori)
+    created = pw.DateTimeField(default=datetime.datetime.now)
+    modified = pw.DateTimeField(null=True)
     
 class User(UserMixin, db.Model):
     username = pw.CharField(unique=True, max_length=12)
@@ -179,7 +220,7 @@ class User(UserMixin, db.Model):
     def check_token(token):
         try:
             user = User.get(User.token==token)
-            if user.token_expiration < datetime.datetime.utcnow():
+            if user.token_expiration > datetime.datetime.utcnow():
                 return user
         except User.DoesNotExist:
             pass

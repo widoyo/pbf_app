@@ -33,7 +33,7 @@
 				{% for message in get_flashed_messages() %}
 				<div class="flash">{{ message }}</div>
 			{% endfor %}
-        <form method="POST" action="/login" class="p-4 p-md-5 border rounded-3 bg-light">
+        <form method="POST" action="{{ url_for('login', next=next) }}" class="p-4 p-md-5 border rounded-3 bg-light">
           {{ form.hidden_tag() }}
 					<div class="form-floating mb-3">
             <input type="text" name="username" class="form-control" id="floatingInput" placeholder="username">
@@ -62,12 +62,6 @@
     -->
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        // Init Pjax instance
-        pjax = new Pjax({
-          selectors: ["title", ".content"],
-          cacheBust: true
-        });
-        console.log("Pjax initialized.", pjax);
       });
     </script>
   </body>

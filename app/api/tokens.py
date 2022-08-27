@@ -9,7 +9,6 @@ from app.api.auth import basic_auth
 def get_token():
     token = basic_auth.current_user().get_token()
     return jsonify({'token': token})
-    pass
 
 def revoke_token():
     pass

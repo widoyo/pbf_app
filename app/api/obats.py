@@ -2,12 +2,15 @@ from flask import jsonify, request
 from playhouse.flask_utils import get_object_or_404
 from app.api import bp
 from app.models import Obat
+from app.api.auth import token_auth
 
 @bp.route('/obat/<int:id>', methods=['GET'])
+@token_auth.login_required
 def get_obat(id):
     return jsonify(get_object_or_404(Obat, Obat.id==id).to_dict())
 
 @bp.route('/obat')
+@token_auth.login_required
 def index_obat():
     rst = Obat.select()
     q = request.args.get('q', None)

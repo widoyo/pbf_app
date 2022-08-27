@@ -3,6 +3,7 @@ from flask import Flask, render_template, redirect, url_for, flash
 from flask import send_from_directory, request
 from werkzeug.urls import url_parse
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask_cors import CORS
 
 from config import Config
 
@@ -18,6 +19,7 @@ def create_app(config_class=Config):
 
     login_manager.init_app(app)
     db.init_app(app)
+    CORS(app)
 
     from app import user
     from app import api
@@ -49,6 +51,7 @@ def create_app(config_class=Config):
         if current_user.is_authenticated:
             return redirect(url_for('index'))
         form = LoginForm()
+        next_page = request.args.get('next')
         if form.validate_on_submit():
             try:
                 user = User.get(User.username==form.username.data)
@@ -60,11 +63,11 @@ def create_app(config_class=Config):
                 return redirect(url_for('login'))
             login_user(user, remember=form.remember_me.data)
             
-            next_page = request.args.get('next')
+            
             if not next_page or url_parse(next_page).netloc != '':
-                next_page = '/'
+                next_page = url_for('homepage')
             return redirect(next_page)
-        return render_template('login.html', title='Sign In', form=form)
+        return render_template('login.html', title='Sign In', form=form, next=next_page)
     
     @app.route('/logout')
     def logout():
