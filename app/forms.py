@@ -3,13 +3,25 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Selec
 from wtforms import DateField, HiddenField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 
+class AbsenForm(FlaskForm):
+    username = HiddenField()
+    ll = StringField('LatLon')
+    radius = StringField('Radius')
+    keterangan = StringField(validators=[DataRequired()])
+    submit = SubmitField('Klik')
+    
+class MovingForm(FlaskForm):
+    username = HiddenField()
+    aktifitas = StringField()
+    submit = SubmitField('Simpan')
+    
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
-class PesananOutForm(FlaskForm):
+class PesananInForm(FlaskForm):
     pelanggan = SelectField('Pelanggan')
     tanggal = DateField()
     jatuh_tempo = DateField()
@@ -22,6 +34,6 @@ class PasswordForm(FlaskForm):
 class UserForm(FlaskForm):
     username = StringField()
     password = PasswordField()
-    role = SelectField(choices=[(1, 'Sales'),(2, 'Gudang'),(3, 'Adm/Kug')]) # 0 super, 1 sales, 2 gudang, 3 keuangan
-    submit = SubmitField('Kirim')
+    role = SelectField(choices=[(1, 'Sales'),(2, 'Gudang'),(3, 'Adm/Kug'),(0, 'Manager')]) # 0 super, 1 sales, 2 gudang, 3 keuangan
+    submit = SubmitField('Tambah User')
     

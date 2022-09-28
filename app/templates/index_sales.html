@@ -1,14 +1,278 @@
 {% extends 'base_sales.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.0/dist/css/tom-select.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker-bs5.min.css">
+<script src="/static/js/accounting.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+{% endblock %}
 {% block content %}
 <div class="container">
   <div class="row">
-    <div class="col">
-      Form Pesanan
-      list Pesanan dan statusnya
-      List Tagihan
-      List Pelanggan-nya
-      Prestasiku
+    <div class="col-sm-6">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="mb-4">Aktifitas</h5>
+          <h6>Hari Ini</h6>
+          <div id="id_aktifitas" class="visually-hidden"><!-- entry aktifitas, sudah present hari ini-->
+          <div id="id_present_status" style="display: block" class="p-3 mb-2 bg-info bg-opacity-10 border border-info rounded">
+          </div>
+          <div id="id_visit_form" class="bg-light p-3 round mb-3"><!--Visit Form-->
+          <div id="map" style="width: auto;height:200px" class="border mb-3"></div>
+          <div class="row mb-3">
+            <div class="col"><select class="form-select" id="dest">
+            </select></div>
+            <div class="col">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="idorder" value="order">
+                <label class="form-check-label" for="idorder">Order</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="idfaktur" value="faktur">
+                <label class="form-check-label" for="idfaktur">Faktur</label>
+              </div>              
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="idtagih" value="tagih">
+                <label class="form-check-label" for="idtagih">Tagih</label>
+              </div>              
+            </div>
+          </div>
+          <div class="mt-4">
+            <input type="submit" id="idsubmit" disabled class="btn btn-primary px-3 me-2" value="Simpan Aktifitas"> <a class="btn btn-outline-secondary" href="javascript:;">Batal / Tutup</a>
+          </div>
+          </div>
+          <!--membuat rencana aktifitas-->
+          <div class="bg-light p-3 round" style="display:none">
+            <h6>Membuat Rencana</h6>
+          <div class="mb-3">
+            <label for="tanggal">Tanggal</label>
+            <input type="text" class="form-control" id="tanggal">
+          </div>
+          <div class="mb-3">
+            <label for="">Rencana Kunjungan (<span class="mx-3" id="num_visit">0</span>)</label>
+            <select class="form-select" name="pelanggan" multiple id="rencana_tujuan">
+            </select>
+          </div>
+          <div class="mb-3 mt-5">
+            <input id="submit_rencana" type="submit" class="btn btn-primary px-3" value="Simpan Rencana" disabled> <a class="btn btn-secondary px-3" href="javascript:;">Batal</a>
+          </div>
+          </div><!--membuat rencana-->
+          
+          <div class="mb-3">
+            <h5 class="mb-4">Riwayat</h5>
+
+          </div><!--Riwayat-->
+        </div><!-- entry aktifitas, sudah present-->
+
+        <div id="id_present_form" class="bg-light p-3"><!--fasilitas present: Map, form-->
+          <div id="map" class="mb-3" style="width: auto;height:200px;border:solid 1px #eee"></div>
+          <form name="absen_masuk" action="/absen" method="POST">
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" class="btn-check" name="btnradio" value="rumah" id="btnrumah" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnrumah">Rumah</label>
+            
+              <input type="radio" class="btn-check" name="btnradio" value="kantor" id="btnkantor" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnkantor">Kantor</label>
+            
+              <input type="radio" class="btn-check" name="btnradio" value="lainnya" id="btnlainnya" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnlainnya">Lainnya</label>
+            </div>
+          </form>
+          <button id="myloc" class="px-5 btn btn-outline-primary my-3">Hadir</button>
+        </div>
+      </div>
+    </div>
+      <div class="card">
+        <form action="/penjualan" method="post">
+          {{ form_pesanan_in.hidden_tag() }}
+          <div class="card-body">
+            <h5 class="mb-4">Tambah Pesanan</h5>
+            <div class="mb-3">
+              <select class="form-select" name="pelanggan" id="pelanggan">
+                {% for p in pelanggans %}
+                <option value="{{ p.id }}">{{ p.nama }} {{ p.kota }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          <input type="submit" class="btn btn-primary" value="Kirim"> Batal
+        </div>
+      </form>
+    </div>
+    </div>
+    <div class="col-sm-6">
+      Kanan
     </div>
   </div>
 </div>
+{% if current_user.role == 1 %}
+<template>
+  <div><!-- form new present -->
+    <div id="map2" style="width: auto; height: 200px;" class="mb-3">
+    </div>
+  </div><!-- end form new present-->
+  <div><!-- history present -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Jam</th>
+          <th>Lokasi</th>
+          <th>Aktifitas</th>
+        </tr>
+      </thead>      
+    </table>
+  </div><!-- end history -->
+</template>
+{% endif %}
+
+{% endblock %}
+{% block js_foot %}
+<script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.0/dist/js/tom-select.complete.min.js"></script>
+<script>
+  let map = L.map('map').fitWorld();
+  const res_today = '/api/absen/today';
+  let marker;
+  let data = {};
+
+  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
+    tileSize: 512,
+    maxZoom: 12,
+    zoomOffset: -1,
+    id: 'mapbox/streets-v11',
+    accessToken: 'pk.eyJ1Ijoid2lkb3lvIiwiYSI6ImNsOGhiaWNtZzAwcmEzcHF2bGtydDdzazcifQ.B5KinYTMnjIHfOyU3lHpkw'
+  }).addTo(map);
+  map.on('resize', () => {
+    map.fitWorld({animate: false});
+  });
+
+  const mystatus = async () => {
+    console.log('mystatus()');
+    const res = await fetch('/api/absen/today');
+    if (!res.ok) {
+      throw new Error('Network error');
+    }
+    const y = await res.json();
+    if (y.masuk) {
+      document.getElementById('id_present_status').innerHTML = `<b class="me-5">${y.username}</b> <span class="text-muted">Masuk:</span> ${y.masuk}`;
+      document.getElementById('id_present_form').classList.add('visually-hidden');
+      document.getElementById('id_aktifitas').classList.remove('visually-hidden');
+    } else {
+      document.getElementById('id_aktifitas').classList.add('visually-hidden');
+      document.getElementById('id_present_form').classList.remove('visually-hidden');
+    }
+  };
+  mystatus();
+  const dest = new TomSelect('#dest', {
+    valueField: 'id',
+    labelField: 'nama',
+    searchField: 'nama',
+    preload: true,
+	  onChange: (e) => {
+      console.log('e:', e.length);
+      if (e.length == 0) {
+        console.log('e undefined');
+        data.ll = undefined;
+      } else {
+        getmyloc();
+      }
+    },
+  load: async (q, cb) => { 
+    const res = await fetch(`/api/pelanggan/all`);
+    const r = await res.json();
+    cb(r.items);},
+  render: {
+    option: (item, escape) => {
+      return `<div class="m-1 border-bottom" style="">${escape(item.nama)}
+        <div class="fs-6 text-lowercase">${item.alamat} <b>${item.kota}</b></div></div>`;
+    },
+    item: (item, escape) => {
+      return `<span class="text-light bg-primary px-2 m-1 rounded" style="">${escape(item.nama)}</span>`;
+    }
+  }
+  });
+
+  const isAktifitasValid = () => {
+    let checked_valid = false;
+    for(const a of ['tagih','order','faktur']) {
+      checked_valid = document.getElementById(`id${a}`).checked;
+      console.log('cv', checked_valid);
+      if (checked_valid) { 
+        
+        break; 
+      }
+    }
+    //console.log('data.ll:', data.ll);
+    if ((checked_valid & (data.ll !== undefined))) {
+      document.getElementById('idsubmit').removeAttribute('disabled')
+    } else {
+      document.getElementById('idsubmit').setAttribute('disabled', true);
+    }
+  };
+  document.getElementById('idorder').addEventListener('click', isAktifitasValid);
+  document.getElementById('idfaktur').addEventListener('click', isAktifitasValid);
+  document.getElementById('idtagih').addEventListener('click', isAktifitasValid);
+  const getmyloc = (e) => {
+  map.locate({setView: true, maxZoom: 16})
+    .on('locationfound', (e) => { 
+      marker = L.marker(e.latlng)
+      marker.addTo(map);
+      data.ll = e.latlng.lat + ',' + e.latlng.lng;
+      data.radius = (e.accuracy / 2);
+      console.log('LatLon:', data.ll);
+      console.log('Radius: ', data.radius);
+      isAktifitasValid()
+    })
+    .on('locationerror', (e) => { console.log(e)});
+}
+
+  const ts = new TomSelect('#rencana_tujuan',{
+    valueField: 'id',
+    labelField: 'nama',
+    searchField: 'nama',
+    preload: true,
+	  onChange: (e) => { 
+    const num_visit = document.getElementById('num_visit');
+    num_visit.innerHTML = `<b class="fs-3">${e.length}</b>`;
+    const b = (e.length > 0);
+
+    console.log('length 0?', b);
+    if (e.length > 0) {
+      document.getElementById('submit_rencana').removeAttribute('disabled');
+    } else {
+      document.getElementById('submit_rencana').setAttribute('disabled', true);
+    }
+    console.log(e); 
+  },
+  load: async (q, cb) => { 
+    const res = await fetch(`/api/pelanggan/all`);
+    const r = await res.json();
+    cb(r.items);},
+  render: {
+    option: (item, escape) => {
+      return `<div class="m-1 border-bottom" style="">${escape(item.nama)}
+        <div class="fs-6 text-lowercase">${item.alamat} <b>${item.kota}</b></div></div>`;
+    },
+    item: (item, escape) => {
+      return `<span class="text-light bg-primary px-2 m-1 rounded" style="">${escape(item.nama)}</span>`;
+    }
+  },
+  });
+  const dp_el = document.getElementById('tanggal');
+  const dp_tanggal = new Datepicker(dp_el, {
+    autohide: true,
+    daysOfWeekDisabled: [0],
+    daysOfWeekHighlighted: [0, 6],
+    language: 'id',
+    todayBtn: true,
+    format: 'dd/mm/yyyy'
+  });
+  const show_move = async () => {
+    const temp = document.getElementsByTagName('template')[0];
+    const table = temp.content.querySelector('table');
+    const a = document.importNode(table, true);
+    console.log(table);
+  };
+
+</script>
 {% endblock %}

@@ -5,7 +5,56 @@
     <div class="col">
       penjualan
     </div>
-  </div>  
+  </div> 
+  <div class="row">
+    <div class="col-sm-6">
+      <form action="/penjualan">
+      
+      <input name="pelanggan" id="pelanggan" class="form-control">
+      </select>
+      </form>
+      {% if penjualan %}
+      <table class="table">
+        {% for tahun, penjualan_tahun in penjualan|sort(attribute='tanggal')|groupby('tanggal.year') %}
+        {% for bulan, daftar in penjualan_tahun|sort(attribute='tanggal')|groupby('tanggal.month') %}
+        <tr>
+          <th class="bg-light fs-3" colspan="4">{{ bulan }} {{ tahun }}</th>
+        </tr>
+        {% for jual in daftar %}
+        <tr>
+          <td><span class="ms-2 text-muted">{{ jual.tanggal.strftime('%d') }}</span> {{ jual.pelanggan.nama }}</td>
+          <td>{{ jual.s_status()|safe }} </td>
+          <td><a href="{{ url_for('penjualan.show', id=jual.id) }}">{{ jual.itemjual_set.count() }} item</a></td>
+          <td class="text-end currency">{{ jual.nilai() }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+      </table>
+      {% else %}
+      <p><i>Belum ada data pemesanan masuk maupun penjualan</i></p>
+      {% endif %}
+    </div>
+    <div class="col-sm-6"></div>
+  </div>
 </div>
+{% endblock %}
 
+{% block extra_head %}
+  <link rel="stylesheet" href="/static/css/tom-select.bootstrap5.min.css" />
+  <script src="/static/js/tom-select.complete.js"></script>
+{% endblock %}
+
+{% block js_foot %}
+<script>
+  const opts = {
+    load: function (q, cb) {
+      const url = '/api/pelanggan?q=' + encodeURIComponent(q)
+      fetch(url)
+        .then(resp => resp.json())
+        .then(json => {})
+    }
+  };
+  new TomSelect('#pelanggan', opts);
+</script>
 {% endblock %}

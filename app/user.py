@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, flash, redirect
+from flask import Blueprint, render_template, url_for, flash, redirect, abort
 from flask_login import login_required, current_user
 from app.models import User
 from app.forms import UserForm
@@ -8,6 +8,8 @@ bp = Blueprint('user', __name__)
 @bp.route('/add', methods=['POST', 'GET'])
 @login_required
 def add():
+    if current_user.role != 0:
+        abort(403)
     form = UserForm()
     errors = None
     if form.validate_on_submit():
@@ -24,6 +26,8 @@ def add():
 
 @bp.route('/')
 def index():
+    if current_user.role != 0:
+        abort(403)
     users = User.select()
     return render_template('user/index.html', users=users)
 

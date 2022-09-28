@@ -25,6 +25,8 @@
         display: block;
       }
 </style>
+{% block extra_head %}
+{% endblock %}
   </head>
   <body>
     <header class="bg-light text-white mb-4">
@@ -48,8 +50,6 @@
                 <li class="nav-item dropdown px-2">
                   <a class="nav-link dropdown-toggle" role="button" id="dropdownRtdMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false">Penjualan</a>
                   <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
-                    <li><a class="dropdown-item navlink" href="/penjualan/pesanan">Pesanan</a>
-                    </li>
                     <li><a class="dropdown-item navlink" href="/penjualan">Penjualan</a>
                     </li>
                     <li class="dropdown-divider"></li>
@@ -71,23 +71,21 @@
                     <li><a href="/supplier" class="dropdown-item navlink">Supplier</a></li>
                   </ul>
                 </li>
-                <li class="nav-item dropdown px-2">
-                  <a class="nav-link dropdown-toggle" role="button" id="dropdownRtdMenuLink" href="#" data-bs-toggle="dropdown" aria-expanded="false">Laporan</a>
-                  <ul class="dropdown-menu" araia-labelledby="dropdownRtdMenuLink">
-                    <li><a class="dropdown-item navlink" href="/">Sehat</a>
-                    </li>
-                    <li class="dropdown-divider"></li>
-                    <li><a class="dropdown-item navlink" href="/logger">Semua</a>
-                    </li>
-                  </ul>
-                </li>
                 </ul>
                 <ul class="navbar-nav">
                 {% if current_user.is_authenticated %}
                 <li class="nav-item dropdown">
-                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">{{ current_user.username }} ({{ current_user.role }})</a>
+                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-fill me-2"></i>Akun</a>
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                    <li><span class="dropdown-item">{{ current_user.username }}</span></li>   
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li><a href="/absen" class="dropdown-item navlink"><i class="bi bi-hourglass-split me-2"></i>Presensi</a></li>   
                     {% if current_user.role == 0 %}
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
                     <li><a href="/user" class="dropdown-item navlink">User</a></li>
                     <li><a href="/pelanggan" class="dropdown-item navlink">Pelanggan</a></li>
                     <li><a href="/supplier" class="dropdown-item navlink">Supplier</a></li>
@@ -132,6 +130,7 @@
     <!-- Optional JavaScript; choose one of the two! -->
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
     <script src="/static/js/pjax.min.js"></script>
     <script>

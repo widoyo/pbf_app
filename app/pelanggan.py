@@ -4,6 +4,12 @@ from flask_login import current_user, login_required
 
 bp = Blueprint('pelanggan', __name__)
 
+@bp.route('/<int:id>')
+@login_required
+def show(id):
+    pelanggan = Pelanggan.get(id)
+    return render_template('pelanggan/show.html', pelanggan=pelanggan)
+
 @bp.route('/')
 @login_required
 def index():

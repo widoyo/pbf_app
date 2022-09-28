@@ -4,6 +4,12 @@ from flask_login import login_required
 from app.api import bp
 from app.models import Pelanggan
 
+
+@bp.route('/pelanggan/all')
+@login_required
+def all_pelanggan():
+    return jsonify({'items': [p.to_dict() for p in Pelanggan.select()]})
+
 @bp.route('/pelanggan/<int:id>', methods=['GET'])
 @login_required
 def get_pelanggan(id):

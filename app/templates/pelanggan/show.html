@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/choices.min.css" />
+<script src="/static/js/choices.min.js"></script>
+<script src="/static/js/accounting.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a href="/pelanggan">Pelanggan</a></li>
+          <li class="breadcrumb-item active" aria-current="page">#{{ pelanggan.id }}</li>
+        </ol>
+      </nav>
+      <div class="text-uppercase text-muted fs-6">Pelanggan</div>
+      <h2><span class="text-muted">#{{ pelanggan.kode }}</span> - {{ pelanggan.nama }} </h2>
+      
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="card border-rounded">
+        <div class="card-body">
+          <div class="row">
+            <div class="col"></div>
+            <div class="col"></div>
+            <div class="col"></div>
+          </div>
+        </div>
+      </div>
+      <h3>Riwayat Penjualan</h3>
+      {% if pelanggan.jual_set %}
+      <table class="table">
+      {% for item in pelanggan.jual_set %}
+        <tr>
+          <td>{{ item.tanggal }}</td>
+          <td class="text-end font-monospace text-muted">{{ item.itemjual_set.count() }}</td>
+        </tr>
+      {% endfor %}
+      </table>
+      {% else %}
+      <p><i>Tidak ada item pesanan</i></p>
+      {% endif %}
+    </div>
+    <div class="col-sm-6">
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block js_foot %}
+<script>
+  var s = new Choices('#select-it', {allowHTML: true, removeItemButton: true});
+  accounting.settings = {
+    currency: {
+		symbol : "",   // default currency symbol is '$'
+		format: "%s%v", // controls output: %s = symbol, %v = value/number (can be object: see below)
+		decimal : ",",  // decimal point separator
+		thousand: ".",  // thousands separator
+		precision : 0   // decimal places
+	},
+	number: {
+		precision : 0,  // default precision on numbers is 0
+		thousand: ",",
+		decimal : "."
+	}
+}
+
+  for (c of document.querySelectorAll('.currency')) {
+    c.innerText = accounting.formatMoney(c.innerText)
+  }
+  
+</script>
+{% endblock %}

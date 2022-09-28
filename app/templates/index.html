@@ -4,8 +4,23 @@
   <div class="row">
     <div class="col-sm-6 border">
       Pesanan yang jalan
+      {% if juals %}
+      <table class="table">
+        {% for jual in juals %}
+        <tr>
+          <td>{{ jual.pelanggan.nama }}</td>
+          <td>{{ jual.tanggal }}</td>
+          <td>{{ jual.status }}</td>
+        </tr>
+
+        {% endfor %}  
+      </table>
+      {% else %}
+      <p><i>Belum ada Pesanan Masuk atau Penjualan terjadi</i></p>
+      {% endif %}
     </div>
-    <div class="col-sm-6 border">
+    <div x-data="{title: 'Hallo'}" class="col-sm-6 border">
+      <h1 x-text="title"></h1>
       Second
     </div>
   </div>

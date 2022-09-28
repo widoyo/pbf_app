@@ -1,0 +1,181 @@
+{% if current_user.role == 1 %}
+{% extends 'base_sales.html' %}
+{% else %}
+{% extends 'base.html' %}
+{% endif %}
+{% block extra_head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Presensi</h1>
+
+        <div id="absen_masuk" style="display: none"><!-- begin presensi -->
+          <div id="map" style="width: auto; height: 200px;" class="mb-3">
+          </div>
+          <form name="absen_masuk" action="/absen" method="POST">
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" class="btn-check" name="btnradio" value="rumah" id="btnrumah" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnrumah">Rumah</label>
+            
+              <input type="radio" class="btn-check" name="btnradio" value="kantor" id="btnkantor" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnkantor">Kantor</label>
+            
+              <input type="radio" class="btn-check" name="btnradio" value="lainnya" id="btnlainnya" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnlainnya">Lainnya</label>
+            </div>
+          </form>
+          <button id="myloc" class="px-5 btn btn-outline-primary my-3">Cek</button>
+        </div>
+        <div id="absen_status" style="display: none" class="p-3 bg-info bg-opacity-10 border border-info rounded">  
+        </div>
+    <!-- end presensi -->
+    <div id="present" class="mt-5"><!-- start -->
+    </div>
+    {% if current_user.role == 0 %}
+      <template>
+        <div>
+        <h2>Kehadiran</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Masuk</th>
+              <th>Keluar</th>
+            </tr>
+          </thead>
+        </table>
+        </div>
+      </template>
+      {% endif %}
+    </div>
+  </div>
+</div>
+    {% endblock %}
+{% block js_foot %}
+<script>
+  let map = L.map('map').fitWorld();
+  const res_today = '/api/absen/today';
+  let marker;
+  let data = {};
+
+  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
+    tileSize: 512,
+    maxZoom: 17,
+    zoomOffset: -1,
+    id: 'mapbox/streets-v11',
+    accessToken: 'pk.eyJ1Ijoid2lkb3lvIiwiYSI6ImNsOGhiaWNtZzAwcmEzcHF2bGtydDdzazcifQ.B5KinYTMnjIHfOyU3lHpkw'
+  }).addTo(map);
+
+  {% if current_user.role == 0 %}
+  const list_present = async () => {
+    const res = await fetch('/api/absen');
+    if (! res.ok) {
+      throw new Error('Gagal mengambil data presensi');
+    }
+    const y = await res.json();
+    const e = document.getElementById('present');
+    const tbody = document.createElement('tbody');
+    for (const r of y) {
+      console.log(r.username);
+      const tr = document.createElement('tr');
+      const close_or = (r.keluar == undefined) ? `<a href="javascript:;" onClick="slide(this)">Akhiri <i class="bi bi-chevron-right mx-3"></i></a><a href="javascript:;" onClick="close_this(this, ${r.id})" class="invisible btn btn-warning">Close</a>` : r.keluar;
+      const t = `<td>${r.username}</td>
+        <td>${r.masuk}</td>
+        <td>${close_or}</td>`;
+      tr.innerHTML = t;
+      tbody.appendChild(tr);
+    }
+    const temp = document.getElementsByTagName('template')[0];
+    const table = temp.content.querySelector('table');
+    const a = document.importNode(table, true);
+    console.log(table);
+    a.appendChild(tbody);
+    e.appendChild(a);
+    //console.log(y);
+  }
+  const slide = (e) => {
+    e.nextSibling.classList.toggle('invisible');
+  };
+
+  const close_this = async (e, id) => {
+    const res = await fetch(res_today, {
+      method: 'PUT',
+      body: JSON.stringify({'id': id}),
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8"
+      }
+    });
+    const y = await res.json();
+    console.log(y);
+  };
+
+  list_present();
+  {% endif %}
+
+  const mylocation = (e) => {
+    if (marker) {
+      marker.removeFrom(map);
+    }
+    
+    getmyloc();
+    data.keterangan = e.target.value;
+    console.log('keterngan:', data.keterangan);
+  }
+  
+  const radios = document.absen_masuk.btnradio;
+  for(let i=0; i < radios.length; i++) {
+    radios[i].addEventListener('click', mylocation);
+  }
+
+  const mystatus = async () => {
+    console.log('mystatus()');
+    const res = await fetch(res_today);
+    if (!res.ok) {
+      throw new Error('Network error');
+    }
+    const y = await res.json();
+    const e = document.getElementById('absen_masuk');
+    const f = document.getElementById('absen_status');
+    if (y.masuk) {
+      e.style.display = 'none';
+      f.style.display = 'block';
+      f.innerHTML = `<b class="me-5">${y.username}</b> Masuk Jam: ${y.masuk}`;
+    } else {
+      e.style.display = 'block';
+      f.style.display = 'none';
+    }
+  };
+
+const getmyloc = (e) => {
+  map.locate({setView: true, maxZoom: 16})
+    .on('locationfound', (e) => { 
+      marker = L.marker(e.latlng)
+      marker.addTo(map);
+      data.ll = e.latlng.lat + ',' + e.latlng.lng;
+      data.radius = (e.accuracy / 2);
+      console.log('LatLon:', data.ll);
+      console.log('Radius: ', data.radius);
+    })
+    .on('locationerror', (e) => { console.log(e)});
+}
+const mybut = document.getElementById('myloc');
+mybut.addEventListener('click', async () => {
+  const res = await fetch(res_today, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json; charset=UTF-8"
+    }
+  });
+  const y = await res.json();
+  console.log(y);
+  mystatus();
+});
+window.onload = mystatus;
+</script>
+{% endblock %}

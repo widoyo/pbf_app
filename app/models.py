@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 import base64
 import os
@@ -49,7 +50,69 @@ class PaginatedAPIMixin(object):
             }
         }
         return data
+
+class Absen(PaginatedAPIMixin, db.Model):
+    username = pw.CharField(max_length=20, null=False, index=True)
+    tanggal = pw.DateField(default=datetime.date.today, index=True)
+    ll = pw.CharField(null=False) # LatLong
+    radius = pw.FloatField(default=0)
+    masuk = pw.DateTimeField(default=datetime.datetime.now)
+    keluar = pw.DateTimeField(null=True)
+    keterangan = pw.CharField(null=False)
     
+    def from_dict(self, data):
+        new_absen = Absen.create(**data)
+        return new_absen
+    
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'tanggal': self.tanggal,
+            'll': self.ll,
+            'radius': self.radius,
+            'masuk': self.masuk,
+            'keluar': self.keluar,
+            'keterangan': self.keterangan
+        }
+        return data
+    
+    class Meta:
+        indexes = (
+            (('username', 'tanggal'), True),
+        )
+        
+        
+class Moving(db.Model):
+    username = pw.CharField(max_length=20, null=False, index=True)
+    waktu = pw.DateTimeField(default=datetime.datetime.now)
+    ll = pw.CharField(null=False)
+    radius = pw.FloatField(default=0)
+    pelanggan_id = pw.IntegerField()
+    pelanggan = pw.CharField(max_length=35, null=True)
+    aktifitas = pw.CharField(max_length=20)
+    
+    def to_dict(self):
+        data = {
+            'username': self.username,
+            'waktu': self.waktu,
+            'll': self.ll,
+            'radius': self.radius,
+            'pelanggan': self.pelanggan,
+            'aktifitas': self.aktifitas
+        }
+        return data
+    
+    def from_dict(self, data):
+        new_move = Moving.create(**data)
+        return new_move
+        
+    class Meta:
+        indexes = (
+            (('username', 'waktu'), True)
+        )
+
+
 class Note(db.Model):
     object_type = pw.CharField()
     object_id = pw.IntegerField()
@@ -60,6 +123,9 @@ class Note(db.Model):
 class Obat(PaginatedAPIMixin, db.Model):
     nama = pw.CharField(max_length=60)
     satuan = pw.CharField(null=True)
+    h_jual = pw.IntegerField(default=0)
+    h_beli = pw.IntegerField(default=0)
+    mdate = pw.DateTimeField(null=True)
 
     def to_dict(self):
         data = {
@@ -78,25 +144,25 @@ class MutasiObat(db.Model):
     object_id = pw.IntegerField()
     
 class Pelanggan(PaginatedAPIMixin, db.Model):
-    kode = pw.CharField(max_length=10, null=True)
-    nama = pw.CharField(max_length=50)
+    kode = pw.CharField(max_length=10, null=True, index=True)
+    nama = pw.CharField(max_length=50, index=True)
     alamat = pw.CharField(max_length=255, null=True)
     telp = pw.CharField(max_length=35, null=True)
     kota = pw.CharField(max_length=35, null=True)
     badan_usaha = pw.CharField(max_length=20, null=True)
-    jatuh_tempo = pw.IntegerField(default=30) # hari, batas bayar
-    plafon = pw.IntegerField(null=True) # ribuan, Batas maksimum stok
-    sia = pw.CharField(max_length=35, null=True) # Surat Ijin Apotik
-    sia_sd = pw.DateField(null=True) # SIA berlaku sampai dengan
+    jatuh_tempo = pw.IntegerField(default=30, help_text="hari, batas bayar") 
+    plafon = pw.IntegerField(null=True, help_text="ribuan, Batas maksimum stok")
+    sia = pw.CharField(max_length=35, null=True, help_text="Surat Ijin Apotik") # 
+    sia_sd = pw.DateField(null=True, help_text="SIA berlaku sampai dengan") # 
     npwp = pw.CharField(max_length=30, null=True)
     pkp = pw.CharField(max_length=50, null=True)
     nama_pajak = pw.CharField(max_length=50, null=True)
     alamat_pajak = pw.CharField(max_length=100, null=True)
     # kolom extra
-    rating = pw.IntegerField(default=0) # maks 5
+    rating = pw.IntegerField(default=0, help_text="maks 5")
     piutang = pw.FloatField(default=0)
     num_order = pw.IntegerField(default=0)
-    
+    ll = pw.CharField(max_length=60, null=True, help_text="Lat,Lon")
     
     def to_dict(self):
         data = {
@@ -108,6 +174,7 @@ class Pelanggan(PaginatedAPIMixin, db.Model):
             'jatuh_tempo': self.jatuh_tempo,
             'plafon': self.plafon,
             'kota': self.kota,
+            'll': self.ll,
             '_links': {
                 'self': url_for('api.get_pelanggan', id=self.id)
             }
@@ -123,6 +190,40 @@ class Jual(db.Model):
     diskon = pw.IntegerField(default=0)
     status = pw.IntegerField(default=0) # current_status: 0: pesanan, 1: tagihan, 8: Batal, 9: lunas/Close
     
+    class Meta:
+        order_by = ['tanggal']
+        
+    def nilai(self):
+        nilai = 0
+        for i in self.itemjual_set:
+            nilai += i.harga * i.banyak
+        return nilai
+        
+    def s_status(self):
+        return '<span class="badge rounded-pill bg-primary">{}</span>'.format(dict(MutasiStatusChoices)[self.status])
+    
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'pelanggan': self.pelanggan.to_dict(),
+            'tanggal': self.tanggal,
+            'sales': self.sales,
+            'jatuh_tempo': self.jatuh_tempo,
+            'diskon': self.diskon,
+            'status': self.status,
+            '_links': {
+                'self': url_for('api.get_penjualan', id=self.id)
+            },
+            '_items': [i.to_dict() for i in self.itemjual_set]
+        }
+        return data
+    
+    def from_dict(self, data):
+        for field in ['pelanggan_id', 'tanggal', 'sales', 'jatuh_tempo']:
+            if field in data:
+                setattr(self, field, data[field])
+                
+                
 class ItemJual(db.Model):
     pesananin = pw.ForeignKeyField(Jual)
     obat = pw.CharField()
@@ -130,6 +231,23 @@ class ItemJual(db.Model):
     harga = pw.IntegerField()
     diskon = pw.IntegerField(default=0)
     batch_no = pw.CharField(null=True)
+    
+    def from_dict(self, data):
+        for field in []:
+            if field in data:
+                setattr(self, field, data[field])
+                
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'obat': self.obat,
+            'banyak': self.banyak,
+            'harga': self.harga,
+            'diskon': self.diskon,
+            'batch_no': self.batch_no
+        }
+        return data
+    
     
 MutasiStatusChoices = (
     (0, 'pesanan'), # setelah Sales entry pesanan
@@ -185,6 +303,7 @@ class User(UserMixin, db.Model):
             'id': self.id,
             'username': self.username,
             'last_seen': self.last_seen and self.last_seen.isoformat() or None,
+            'role': self.role,
             '_links': {
                 'self': url_for('api.get_user', id=self.id)
             }

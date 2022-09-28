@@ -7,8 +7,8 @@ from flask_cors import CORS
 
 from config import Config
 
-from app.forms import LoginForm, PesananOutForm
-from app.models import db, User, Pelanggan, Obat
+from app.forms import LoginForm, PesananInForm, AbsenForm, MovingForm
+from app.models import db, User, Pelanggan, Obat, Jual, Absen, Moving
 
 login_manager = LoginManager()    
 login_manager.login_view = 'login'
@@ -19,9 +19,9 @@ def create_app(config_class=Config):
 
     login_manager.init_app(app)
     db.init_app(app)
-    CORS(app)
+    CORS(app, resource={r"/api/*": {"origins": "*"}})
 
-    from app import user
+    from app import user, absen
     from app import api
     from app import pelanggan, pesanan, penjualan
     from app import obat
@@ -45,7 +45,9 @@ def create_app(config_class=Config):
     app.register_blueprint(pesanan.bp, url_prefix='/pesanan')
     app.register_blueprint(penjualan.bp, url_prefix='/penjualan')
     app.register_blueprint(obat.bp, url_prefix='/obat')
+    app.register_blueprint(absen.bp, url_prefix='/absen')
     
+
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
@@ -81,9 +83,11 @@ def create_app(config_class=Config):
         if current_user.role == 1: # Sales
             pelanggans = Pelanggan.select()
             obats = Obat.select()
-            form_pesanan_out = PesananOutForm()
-            form_pesanan_out.pelanggan.choices = [(p.id, p.nama) for p in Pelanggan.select().order_by(Pelanggan.nama)]
-            return render_template('index_sales.html', pelanggans=pelanggans, obats=obats)
-        return render_template('index.html')
+            form_pesanan_in = PesananInForm()
+            form_pesanan_in.pelanggan.choices = [(p.id, p.nama) for p in Pelanggan.select().order_by(Pelanggan.nama)]
+            return render_template('index_sales.html', pelanggans=pelanggans, form_pesanan_in=form_pesanan_in)
+        elif current_user.role == 0:
+            juals = Jual.select().order_by(Jual.tanggal.desc())
+        return render_template('index.html', juals=Jual.select())
     
     return app

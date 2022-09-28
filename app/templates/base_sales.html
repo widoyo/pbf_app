@@ -24,6 +24,8 @@
         display: block;
       }
     </style>
+    {% block extra_head %}
+    {% endblock %}
   </head>
   <body>
     <header class="bg-light text-white mb-4">
@@ -42,8 +44,12 @@
                 </li>
                 <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">{{ current_user.username }} ({{ current_user.role }})</a>
+                  <a href="#" class="nav-link dropdown-toggle" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person-fill me-2"></i>Akun</a>
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuLink">
+                    <li class="dropdown-item navlink">{{ current_user.username }}</li>   
+                    <li><hr class="divider"></li>   
+                    <li><a href="/absen" class="dropdown-item navlink"><i class="bi bi-hourglass-split me-3"></i>Presensi</a></li>   
+                    <li><hr class="divider"></li>   
                     <li><a href="/logout" class="dropdown-item navlink">Logout</a></li>   
                   </ul>
                 </li>
