@@ -17,7 +17,6 @@
           <div class="container">
             <div class="row">
               <div class="col">
-                <img src="/static/img/sjf_logo_header.png" alt="sehati" class="mb-2" style=""><span class="ms-3 fs-2">sehati jaya</span>
               </div>
             </div>
           </div>
@@ -26,10 +25,8 @@
     </div>
 		<div class="container">
     <div class="row align-items-center g-lg-5 py-5">
-      <div class="col-lg-7 text-center text-lg-start">
-        <h1 class="display-4 fw-bold lh-1 mb-3">Sehat Berkah Sehati</h1>
-      </div>
       <div class="col-md-10 mx-auto col-lg-5">
+        <img src="/static/img/sjf_logo_header.png" alt="sehati" class="mb-3" style="width:55px;">
 				{% for message in get_flashed_messages() %}
 				<div class="flash">{{ message }}</div>
 			{% endfor %}

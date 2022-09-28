@@ -28,7 +28,7 @@
               <label class="btn btn-outline-primary" for="btnlainnya">Lainnya</label>
             </div>
           </form>
-          <button id="myloc" class="px-5 btn btn-outline-primary my-3">Cek</button>
+          <button id="myloc" class="px-5 btn btn-primary my-3" disabled>☝️ Hadir</button>
         </div>
         <div id="absen_status" style="display: none" class="p-3 bg-info bg-opacity-10 border border-info rounded">  
         </div>
@@ -158,6 +158,7 @@ const getmyloc = (e) => {
       marker.addTo(map);
       data.ll = e.latlng.lat + ',' + e.latlng.lng;
       data.radius = (e.accuracy / 2);
+      document.getElementById('myloc').removeAttribute('disabled');
       console.log('LatLon:', data.ll);
       console.log('Radius: ', data.radius);
     })
