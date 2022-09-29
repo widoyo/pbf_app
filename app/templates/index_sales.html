@@ -65,6 +65,7 @@
         </div><!-- entry aktifitas, sudah present-->
 
         <div id="id_present_form" class="bg-light p-3"><!--fasilitas present: Map, form-->
+          <h5>Presensi</h5>
           <div id="map" class="mb-3" style="width: auto;height:200px;border:solid 1px #eee"></div>
           <form name="absen_masuk" action="/absen" method="POST">
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
@@ -78,7 +79,7 @@
               <label class="btn btn-outline-primary" for="btnlainnya">Lainnya</label>
             </div>
           </form>
-          <button id="myloc" class="px-5 btn btn-outline-primary my-3">Hadir</button>
+          <button id="myloc" class="px-5 btn btn-primary my-3" disabled>☝️ Hadir</button>
         </div>
       </div>
     </div>
@@ -146,6 +147,21 @@
     map.fitWorld({animate: false});
   });
 
+  const mylocation = (e) => {
+    if (marker) {
+      marker.removeFrom(map);
+    }
+    getmyloc();
+    data.keterangan = e.target.value;
+    console.log('keterngan:', data.keterangan);
+    document.getElementById('myloc').removeAttribute('disabled');
+  }
+  
+  const radios = document.absen_masuk.btnradio;
+  for(let i=0; i < radios.length; i++) {
+    radios[i].addEventListener('click', mylocation);
+  }
+
   const mystatus = async () => {
     console.log('mystatus()');
     const res = await fetch('/api/absen/today');
@@ -212,6 +228,7 @@
   document.getElementById('idorder').addEventListener('click', isAktifitasValid);
   document.getElementById('idfaktur').addEventListener('click', isAktifitasValid);
   document.getElementById('idtagih').addEventListener('click', isAktifitasValid);
+
   const getmyloc = (e) => {
   map.locate({setView: true, maxZoom: 16})
     .on('locationfound', (e) => { 
@@ -221,7 +238,7 @@
       data.radius = (e.accuracy / 2);
       console.log('LatLon:', data.ll);
       console.log('Radius: ', data.radius);
-      isAktifitasValid()
+      //isAktifitasValid()
     })
     .on('locationerror', (e) => { console.log(e)});
 }

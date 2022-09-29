@@ -1,0 +1,48 @@
+{% if current_user.role == 1 %}
+{% extends 'base_sales.html' %}
+{% else %}
+{% extends 'base.html' %}
+{% endif %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2 class="mb-5">Panduan</h2>
+      <h3>Daftar Isi</h3>
+      <ol class="mb-5">
+        <li>Presensi</li>
+        <li>Aktifitas / Perjalanan (Sales)</li>
+        <li>Authentikasi</li>
+        <li>Penjualan
+          <ol>
+            <li>Pemesanan</li>
+            <li>Konfirmasi Pesanan</li>
+            <li>Penyiapan Barang</li>
+            <li>Penyerahan</li>
+            <li>Terbit Tagihan (Faktur)</li>
+            <li>Penerimaan Pembayaran (Tagih)</li>
+          </ol>
+        </li>
+      </ol>
+      <h3 class="border-bottom mt-5 mb-3">Presensi</h3>
+      <p>Mencatat <b>kehadiran</b>, <b>Masuk</b> dan <b>Keluar</b>.</p>
+      <div class="row">
+        <div class="col">
+        <img src="/static/img/presensi_form_masuk.png" style="width: 290px;" class="rounded float-start" alt="Form Presensi Masuk">
+        <div class="clearfix"></div>
+        <p class=""><code>/absen</code></p>
+        <p>Dapat diakses dari menu <b>Akun</b> | <b>Presensi</b></p>
+        
+        
+        
+        </div>
+      </div>
+      <p><b>Masuk</b> dilakukan oleh masing-masing individu. <b>Keluar</b>, dilakukan oleh <b>Manager</b></p>
+      <h3 class="border-bottom mt-5 mb-3">Aktifitas / Perjalanan</h3>
+      <p>Mencatat riwayat perjalanan dari satu lokasi pelanggan ke lokasi pelanggan yang lain</p>
+      <h3 class="border-bottom mt-5 mb-3">Authentikasi</h3>
+      <p>Fasilitas untuk mengidentifikasi pengguna (user). Penggunaan aplikasi ini akan selalu dimulai dengan Login (memberikan identitas diri dengan <i>Username</i> dan <i>Password</i></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -15,6 +15,7 @@
             <th>Role</th>
             <th>Last Seen</th>
             <th>HP</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -24,6 +25,7 @@
             <td>{{ user.role }}</td>
             <td>{{ user.last_seen }}</td>
             <td>{{ user.hp }}</td>
+            <td><a href="/password/{{ user.username }}">Ganti Password <i class="bi bi-arrow-right"></i></a></td>
           </tr>
           {% endfor %}
         </tbody>

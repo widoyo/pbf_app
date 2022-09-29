@@ -28,7 +28,7 @@ class PesananInForm(FlaskForm):
     submit = SubmitField()
     
 class PasswordForm(FlaskForm):
-    username = StringField()
+    username = HiddenField()
     new_password = StringField()
     
 class UserForm(FlaskForm):

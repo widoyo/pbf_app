@@ -5,6 +5,7 @@ from app.forms import UserForm
 
 bp = Blueprint('user', __name__)
 
+
 @bp.route('/add', methods=['POST', 'GET'])
 @login_required
 def add():

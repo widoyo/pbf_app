@@ -1,6 +1,6 @@
 import datetime
 from flask import Flask, render_template, redirect, url_for, flash
-from flask import send_from_directory, request
+from flask import send_from_directory, request, abort
 from werkzeug.urls import url_parse
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_cors import CORS
@@ -48,6 +48,35 @@ def create_app(config_class=Config):
     app.register_blueprint(absen.bp, url_prefix='/absen')
     
 
+    @app.route('/password/<username>', methods=['GET', 'POST'])
+    @login_required
+    def password_user(username):
+        if current_user.role != 0:
+            abort(403)
+        user = User.get(User.username==username)
+        if request.method == 'POST':
+            user.set_password(request.form.get('password'))
+            user.save()
+            flash('Passsword telah diganti')
+            return redirect('/user')
+        return render_template('set_password.html', user=user)
+
+    @app.route('/password', methods=['GET', 'POST'])
+    @login_required
+    def password():
+        user = current_user
+        if request.method == 'POST':
+            user.set_password(request.form.get('password'))
+            user.save()
+            flash('Passsword telah diganti')
+            return redirect('/')
+        return render_template('set_password.html', user=user)
+
+    @app.route('/panduan')
+    @login_required
+    def panduan():
+        return render_template('/panduan.html')
+    
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
